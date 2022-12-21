@@ -4,6 +4,7 @@ from emukit.core.initial_designs.latin_design import LatinDesign
 from emukit.core.loop import FixedIterationsStoppingCondition, LoopState, UserFunctionWrapper
 from emukit.core.parameter_space import ParameterSpace
 from emukit.examples.fabolas import FabolasLoop
+from emukit.examples.fabolas.continuous_fidelity_entropy_search import ContinuousFidelityEntropySearch, ContinuousFidelityMaxValueEntropySearch
 
 
 def fmin_fabolas(
@@ -14,6 +15,7 @@ def fmin_fabolas(
     n_iters: int,
     n_init: int = 20,
     marginalize_hypers: bool = True,
+    acquisition_function = "es",
 ) -> LoopState:
     """
     Simple interface for Fabolas which optimizes the hyperparameters of machine learning algorithms
@@ -58,6 +60,11 @@ def fmin_fabolas(
 
         return np.array([[y]]), np.array([[c]])
 
+    if acquisition_function == "es":
+        acquisition_function = ContinuousFidelityEntropySearch
+    elif acquisition_function == "mes":
+        acquisition_function = ContinuousFidelityMaxValueEntropySearch
+
     loop = FabolasLoop(
         X_init=X_init,
         Y_init=Y_init,
@@ -66,6 +73,7 @@ def fmin_fabolas(
         s_min=s_min,
         s_max=s_max,
         marginalize_hypers=marginalize_hypers,
+        acquisition_function=acquisition_function
     )
     loop.run_loop(
         user_function=UserFunctionWrapper(wrapper, extra_output_names=["cost"]),

@@ -24,6 +24,7 @@ class FabolasLoop(CostSensitiveBayesianOptimizationLoop):
         update_interval: int = 1,
         num_eval_points: int = 2000,
         marginalize_hypers: bool = True,
+        acquisition_function = ContinuousFidelityEntropySearch,
     ):
         """
         Implements FAst Bayesian Optimization for LArge DataSets as described in:
@@ -51,12 +52,12 @@ class FabolasLoop(CostSensitiveBayesianOptimizationLoop):
         model_cost = FabolasModel(X_init=X_init, Y_init=cost_init[:, None], s_min=s_min, s_max=s_max)
 
         if marginalize_hypers:
-            acquisition_generator = lambda model: ContinuousFidelityEntropySearch(
+            acquisition_generator = lambda model: acquisition_function(
                 model_objective, space=extended_space, target_fidelity_index=len(extended_space.parameters) - 1
             )
             entropy_search = IntegratedHyperParameterAcquisition(model_objective, acquisition_generator)
         else:
-            entropy_search = ContinuousFidelityEntropySearch(
+            entropy_search = acquisition_function(
                 model_objective, space=extended_space, target_fidelity_index=len(extended_space.parameters) - 1
             )
 
